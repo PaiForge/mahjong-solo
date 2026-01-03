@@ -66,7 +66,9 @@ export function Board() {
 
   // 選択した牌を切った後のシャンテン数と有効牌
   const { nextShanten, ukeire } = useMemo(() => {
-    if (selectedHaiId === undefined || tehai.length < 14) {
+    // selectedHaiIdが未定義、手牌が14枚未満、または選択中の牌が手牌に存在しない場合は計算しない
+    const selectedHaiExists = tehai.some((h) => h.haiId === selectedHaiId)
+    if (selectedHaiId === undefined || tehai.length < 14 || !selectedHaiExists) {
       return { nextShanten: currentShanten, ukeire: [] as HaiKindId[] }
     }
 
@@ -132,7 +134,7 @@ export function Board() {
       })
 
       if (ukeire.includes(tsumoHai.kindId)) {
-        navigate('/result', { replace: true })
+        navigate('/result', { replace: true, state: { tehai } })
       }
     }
   }, [tehai, navigate])
@@ -194,7 +196,11 @@ export function Board() {
                   ? 'bg-green-600/80 text-white/80 cursor-pointer'
                   : 'bg-green-800/50 text-white/30 cursor-not-allowed'
               }`}
-              onClick={canUndo ? undo : undefined}
+              onClick={canUndo ? () => {
+                undo()
+                setSelectedHaiId(undefined)
+                setShowModal(false)
+              } : undefined}
             >
               ↩ 戻す
             </div>
