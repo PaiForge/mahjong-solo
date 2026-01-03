@@ -11,8 +11,8 @@ type Props = {
   onHaiClick: (haiId: HaiId) => void
   /** 牌のサイズ */
   size?: HaiSize
-  /** ハイライト表示する牌ID */
-  highlightedHaiId?: HaiId
+  /** ハイライト表示する牌IDの配列 */
+  highlightedHaiIds?: HaiId[]
 }
 
 /**
@@ -27,7 +27,7 @@ export function Tehai({
   selectedHaiId,
   onHaiClick,
   size = 'md',
-  highlightedHaiId,
+  highlightedHaiIds = [],
 }: Props) {
   return (
     <div className="flex items-center justify-center">
@@ -35,7 +35,7 @@ export function Tehai({
         // 14枚目（ツモ牌）は左にマージンを追加
         const isTsumo = index === 13
         const isSelected = selectedHaiId === hai.haiId
-        const isHighlighted = highlightedHaiId !== undefined && highlightedHaiId === hai.haiId
+        const isHighlighted = highlightedHaiIds.includes(hai.haiId)
         return (
           <div
             key={hai.haiId}

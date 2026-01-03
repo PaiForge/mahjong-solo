@@ -83,15 +83,12 @@ export function Board() {
     return { nextShanten, ukeire }
   }, [tehai, selectedHaiId, currentShanten])
 
-  // ベストムーブを計算（シャンテン数が最小で、受け入れ枚数が最大の打牌）
-  const bestMoveHaiId = useMemo(() => {
-    if (tehai.length < 14) return undefined
+  // ベストムーブを計算（シャンテン数が最小で、受け入れ枚数が最大の打牌、同率は全てハイライト）
+  const bestMoveHaiIds = useMemo(() => {
+    if (tehai.length < 14) return []
 
-    let bestHaiId: HaiId | undefined = undefined
-    let bestShanten = Infinity
-    let bestUkeireCount = -1
-
-    for (const hai of tehai) {
+    // 各牌のシャンテン数と受け入れ枚数を計算
+    const evaluations = tehai.map((hai) => {
       const tehaiAfterDiscard = tehai.filter((h) => h.haiId !== hai.haiId)
       const shanten = calculateShanten({
         closed: tehaiAfterDiscard.map((h) => h.kindId),
@@ -101,19 +98,19 @@ export function Board() {
         closed: tehaiAfterDiscard.map((h) => h.kindId),
         exposed: [],
       })
+      return { haiId: hai.haiId, shanten, ukeireCount: ukeireList.length }
+    })
 
-      // シャンテン数が小さい、または同じシャンテン数で受け入れ枚数が多い場合に更新
-      if (
-        shanten < bestShanten ||
-        (shanten === bestShanten && ukeireList.length > bestUkeireCount)
-      ) {
-        bestShanten = shanten
-        bestUkeireCount = ukeireList.length
-        bestHaiId = hai.haiId
-      }
-    }
-
-    return bestHaiId
+    // 最小シャンテン数を取得
+    const minShanten = Math.min(...evaluations.map((e) => e.shanten))
+    // 最小シャンテン数の牌の中で最大受け入れ枚数を取得
+    const maxUkeireCount = Math.max(
+      ...evaluations.filter((e) => e.shanten === minShanten).map((e) => e.ukeireCount)
+    )
+    // 同率一位の牌を全て返す
+    return evaluations
+      .filter((e) => e.shanten === minShanten && e.ukeireCount === maxUkeireCount)
+      .map((e) => e.haiId)
   }, [tehai])
 
   // テンパイで有効牌をツモったら和了
@@ -203,7 +200,7 @@ export function Board() {
             selectedHaiId={selectedHaiId}
             onHaiClick={handleHaiClick}
             size={haiSize}
-            highlightedHaiId={showBestMove ? bestMoveHaiId : undefined}
+            highlightedHaiIds={showBestMove ? bestMoveHaiIds : []}
           />
         </div>
       </div>
