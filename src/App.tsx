@@ -1,8 +1,14 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { GamePage, ResultPage } from '@/pages'
+
 function App() {
   return (
-    <div className="min-h-screen bg-green-700 flex items-center justify-center">
-      <h1 className="text-4xl font-bold text-white">Mahjong Solo</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<GamePage />} />
+        <Route path="/result" element={<ResultPage />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

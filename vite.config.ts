@@ -9,6 +9,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // @pai-forge/mahjong-react-ui が React Native にも対応しているため、
+      // Web ビルドでは空のモジュールに置き換える
+      'react-native': path.resolve(__dirname, './src/shims/react-native.ts'),
     },
   },
 })
