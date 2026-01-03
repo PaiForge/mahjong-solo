@@ -1,6 +1,6 @@
 import type { HaiId } from '@pai-forge/riichi-mahjong'
 import type { GameHai } from '@/types'
-import { Hai } from '@pai-forge/mahjong-react-ui'
+import { Hai, type HaiSize } from '@pai-forge/mahjong-react-ui'
 
 type Props = {
   /** 手牌 */
@@ -9,6 +9,8 @@ type Props = {
   selectedHaiId?: HaiId
   /** 牌がクリックされた時のコールバック */
   onHaiClick: (haiId: HaiId) => void
+  /** 牌のサイズ */
+  size?: HaiSize
 }
 
 /**
@@ -16,22 +18,30 @@ type Props = {
  *
  * 手牌を横一列で表示し、クリックで牌を選択できる。
  * 選択中の牌は半透明で表示される。
+ * 14枚目（ツモ牌）は少し離して表示する。
  */
-export function Tehai({ tehai, selectedHaiId, onHaiClick }: Props) {
+export function Tehai({ tehai, selectedHaiId, onHaiClick, size = 'md' }: Props) {
   return (
     <div className="flex items-center justify-center">
-      {tehai.map((hai) => (
-        <div
-          key={hai.haiId}
-          className={selectedHaiId === hai.haiId ? 'opacity-50' : ''}
-        >
-          <Hai
-            hai={hai.kindId}
-            size="md"
-            onClick={() => onHaiClick(hai.haiId)}
-          />
-        </div>
-      ))}
+      {tehai.map((hai, index) => {
+        // 14枚目（ツモ牌）は左にマージンを追加
+        const isTsumo = index === 13
+        return (
+          <div
+            key={hai.haiId}
+            className={`
+              ${selectedHaiId === hai.haiId ? 'opacity-50' : ''}
+              ${isTsumo ? 'ml-2' : ''}
+            `}
+          >
+            <Hai
+              hai={hai.kindId}
+              size={size}
+              onClick={() => onHaiClick(hai.haiId)}
+            />
+          </div>
+        )
+      })}
     </div>
   )
 }

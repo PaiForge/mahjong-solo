@@ -1,9 +1,35 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { calculateShanten, getUkeire } from '@pai-forge/riichi-mahjong'
 import type { HaiId, HaiKindId } from '@pai-forge/riichi-mahjong'
+import type { HaiSize } from '@pai-forge/mahjong-react-ui'
 import { Tehai, SuteHaiList, UkeireInfo } from '@/components'
 import { useGameStore } from '../stores/useGameStore'
+
+/**
+ * 画面の向きに応じた牌のサイズを取得するフック
+ */
+function useHaiSize(): HaiSize {
+  const getSize = useCallback((): HaiSize => {
+    if (typeof window === 'undefined') return 'md'
+    // 縦向き（portrait）の場合は xs
+    return window.matchMedia('(orientation: portrait)').matches ? 'xs' : 'md'
+  }, [])
+
+  const [size, setSize] = useState<HaiSize>(getSize)
+
+  useEffect(() => {
+    const handleResize = () => setSize(getSize())
+    window.addEventListener('resize', handleResize)
+    window.addEventListener('orientationchange', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('orientationchange', handleResize)
+    }
+  }, [getSize])
+
+  return size
+}
 
 /**
  * ゲームボードコンポーネント
@@ -15,6 +41,7 @@ export function Board() {
   const { tehai, sutehai, reset, discard, draw } = useGameStore()
   const [selectedHaiId, setSelectedHaiId] = useState<HaiId | undefined>(undefined)
   const [showModal, setShowModal] = useState(false)
+  const haiSize = useHaiSize()
 
   // ゲーム初期化
   useEffect(() => {
@@ -98,23 +125,28 @@ export function Board() {
 
   return (
     <div className="h-screen bg-green-700 flex flex-col">
-      {/* デバッグ情報 */}
-      <div className="absolute top-2 left-2 text-white text-sm bg-black/50 p-2 rounded z-50">
-        手牌: {tehai.length}枚 / シャンテン: {currentShanten}
-      </div>
-
       {/* メインエリア（捨て牌表示） */}
       <div className="main-area flex-1 overflow-auto">
         <SuteHaiList sutehai={sutehai} />
       </div>
 
       {/* 手牌エリア（画面下部に固定、モーダルより前面に表示） */}
-      <div className="tehai-area fixed bottom-0 left-0 right-0 flex justify-center items-center bg-green-800/50 z-[60]">
-        <Tehai
-          tehai={tehai}
-          selectedHaiId={selectedHaiId}
-          onHaiClick={handleHaiClick}
-        />
+      <div className="tehai-area fixed bottom-0 left-0 right-0 z-[60]">
+        {/* シャンテン数表示 */}
+        <div className="flex justify-end px-2 pb-1">
+          <span className="text-white/80 text-xs">
+            {currentShanten === 0 ? 'テンパイ' : `${currentShanten}シャンテン`}
+          </span>
+        </div>
+        {/* 手牌 */}
+        <div className="flex justify-center items-center bg-green-800/50 py-2">
+          <Tehai
+            tehai={tehai}
+            selectedHaiId={selectedHaiId}
+            onHaiClick={handleHaiClick}
+            size={haiSize}
+          />
+        </div>
       </div>
 
       {/* 有効牌情報モーダル */}
