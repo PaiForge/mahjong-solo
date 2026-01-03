@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+/* 手牌エリアの高さ調整 */
+.tehai-area {
+  height: 10vh;
+}
+
+@media (orientation: portrait) {
+  .tehai-area {
+    height: 7vh;
+  }
+}
+
+/* メインエリアの余白調整（手牌エリア分） */
+.main-area {
+  padding-bottom: 10vh;
+}
+
+@media (orientation: portrait) {
+  .main-area {
+    padding-bottom: 7vh;
+  }
+}

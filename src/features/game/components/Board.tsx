@@ -99,12 +99,12 @@ export function Board() {
   return (
     <div className="h-screen bg-green-700 flex flex-col">
       {/* メインエリア（捨て牌表示） */}
-      <div className="flex-1 overflow-auto">
+      <div className="main-area flex-1 overflow-auto">
         <SuteHaiList sutehai={sutehai} />
       </div>
 
       {/* 手牌エリア（画面下部に固定） */}
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center items-center py-2 bg-green-800/50">
+      <div className="tehai-area fixed bottom-0 left-0 right-0 flex justify-center items-center bg-green-800/50">
         <Tehai
           tehai={tehai}
           selectedHaiId={selectedHaiId}
