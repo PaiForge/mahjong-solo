@@ -14,8 +14,10 @@ function useHaiSize(): HaiSize {
     if (typeof window === 'undefined') return 'md'
     const height = window.innerHeight
     const width = window.innerWidth
-    // 高さが400px未満（横向きスマホ）または幅が500px未満（縦向きスマホ）は xs
-    if (height < 400 || width < 500) return 'xs'
+    // 縦向きスマホ（幅が狭い）は xs
+    if (width < 500) return 'xs'
+    // 横向きスマホ（高さが低いが幅は十分）は sm
+    if (height < 500 && width > height) return 'sm'
     // それ以外は md
     return 'md'
   }, [])
