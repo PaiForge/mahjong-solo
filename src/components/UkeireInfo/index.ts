@@ -1,0 +1,1 @@
+export { UkeireInfo } from './UkeireInfo'
