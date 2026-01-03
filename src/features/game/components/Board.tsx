@@ -7,13 +7,17 @@ import { Tehai, SuteHaiList, UkeireInfo } from '@/components'
 import { useGameStore } from '../stores/useGameStore'
 
 /**
- * 画面の向きに応じた牌のサイズを取得するフック
+ * 画面サイズに応じた牌のサイズを取得するフック
  */
 function useHaiSize(): HaiSize {
   const getSize = useCallback((): HaiSize => {
     if (typeof window === 'undefined') return 'md'
-    // 縦向き（portrait）の場合は xs
-    return window.matchMedia('(orientation: portrait)').matches ? 'xs' : 'md'
+    const height = window.innerHeight
+    const width = window.innerWidth
+    // 高さが400px未満（横向きスマホ）または幅が500px未満（縦向きスマホ）は xs
+    if (height < 400 || width < 500) return 'xs'
+    // それ以外は md
+    return 'md'
   }, [])
 
   const [size, setSize] = useState<HaiSize>(getSize)
