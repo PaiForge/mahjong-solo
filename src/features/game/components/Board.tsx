@@ -41,6 +41,7 @@ export function Board() {
   const { tehai, sutehai, reset, discard, draw } = useGameStore()
   const [selectedHaiId, setSelectedHaiId] = useState<HaiId | undefined>(undefined)
   const [showModal, setShowModal] = useState(false)
+  const [showBestMove, setShowBestMove] = useState(false)
   const haiSize = useHaiSize()
 
   // ゲーム初期化
@@ -77,6 +78,39 @@ export function Board() {
 
     return { nextShanten, ukeire }
   }, [tehai, selectedHaiId, currentShanten])
+
+  // ベストムーブを計算（シャンテン数が最小で、受け入れ枚数が最大の打牌）
+  const bestMoveHaiId = useMemo(() => {
+    if (tehai.length < 14) return undefined
+
+    let bestHaiId: HaiId | undefined = undefined
+    let bestShanten = Infinity
+    let bestUkeireCount = -1
+
+    for (const hai of tehai) {
+      const tehaiAfterDiscard = tehai.filter((h) => h.haiId !== hai.haiId)
+      const shanten = calculateShanten({
+        closed: tehaiAfterDiscard.map((h) => h.kindId),
+        exposed: [],
+      })
+      const ukeireList = getUkeire({
+        closed: tehaiAfterDiscard.map((h) => h.kindId),
+        exposed: [],
+      })
+
+      // シャンテン数が小さい、または同じシャンテン数で受け入れ枚数が多い場合に更新
+      if (
+        shanten < bestShanten ||
+        (shanten === bestShanten && ukeireList.length > bestUkeireCount)
+      ) {
+        bestShanten = shanten
+        bestUkeireCount = ukeireList.length
+        bestHaiId = hai.haiId
+      }
+    }
+
+    return bestHaiId
+  }, [tehai])
 
   // テンパイで有効牌をツモったら和了
   useEffect(() => {
@@ -134,27 +168,38 @@ export function Board() {
   }
 
   return (
-    <div className="h-screen bg-green-700 flex flex-col">
+    <div className="h-dvh bg-green-700 flex flex-col overflow-hidden">
       {/* メインエリア（捨て牌表示） */}
-      <div className="main-area flex-1 overflow-auto">
+      <div className="main-area flex-1 overflow-auto min-h-0">
         <SuteHaiList sutehai={sutehai} />
       </div>
 
-      {/* 手牌エリア（画面下部に固定、モーダルより前面に表示） */}
-      <div className="tehai-area fixed bottom-0 left-0 right-0 z-[60]">
-        {/* シャンテン数表示 */}
-        <div className="flex justify-end px-2 pb-1">
+      {/* 手牌エリア（画面下部） */}
+      <div className="tehai-area shrink-0 z-[60]">
+        {/* シャンテン数・ヒント表示 */}
+        <div className="flex justify-between items-center px-2 py-1">
+          <div
+            className={`text-xs px-2 py-1 rounded cursor-pointer select-none ${
+              showBestMove
+                ? 'bg-yellow-400 text-yellow-900'
+                : 'bg-green-600/80 text-white/80'
+            }`}
+            onClick={() => setShowBestMove((prev) => !prev)}
+          >
+            ★ ヒント
+          </div>
           <span className="text-white/80 text-xs">
             {currentShanten === 0 ? 'テンパイ' : `${currentShanten}シャンテン`}
           </span>
         </div>
         {/* 手牌 */}
-        <div className="flex justify-center items-center bg-green-800/50 py-2">
+        <div className="flex justify-center items-center bg-green-800/50">
           <Tehai
             tehai={tehai}
             selectedHaiId={selectedHaiId}
             onHaiClick={handleHaiClick}
             size={haiSize}
+            highlightedHaiId={showBestMove ? bestMoveHaiId : undefined}
           />
         </div>
       </div>
