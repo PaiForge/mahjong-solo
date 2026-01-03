@@ -1,6 +1,7 @@
-import { Link, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Hai } from '@pai-forge/mahjong-react-ui'
 import { CompleteAnimation } from '@/components'
+import { useGameStore } from '@/features/game/stores/useGameStore'
 import type { GameHai } from '@/types'
 
 /**
@@ -10,7 +11,14 @@ import type { GameHai } from '@/types'
  */
 export function ResultPage() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const reset = useGameStore((state) => state.reset)
   const tehai = (location.state as { tehai?: GameHai[] })?.tehai ?? []
+
+  const handleReplay = () => {
+    reset()
+    navigate('/', { replace: true })
+  }
 
   return (
     <div className="h-dvh bg-green-700 flex flex-col items-center justify-center gap-6 p-4">
@@ -31,13 +39,13 @@ export function ResultPage() {
       )}
 
       {/* 再プレイボタン */}
-      <Link
-        to="/"
-        className="mt-4 px-6 py-3 bg-green-600 hover:bg-green-500 rounded-lg transition-colors no-underline"
+      <button
+        onClick={handleReplay}
+        className="mt-4 px-6 py-3 bg-green-600 hover:bg-green-500 rounded-lg transition-colors"
         style={{ color: 'rgba(255, 255, 255, 0.8)' }}
       >
         もう一度プレイ
-      </Link>
+      </button>
     </div>
   )
 }

@@ -50,10 +50,11 @@ export function Board() {
   const [showBestMove, setShowBestMove] = useState(false)
   const haiSize = useHaiSize()
 
-  // ゲーム初期化
+  // ゲーム初期化（マウント時のみ）
   useEffect(() => {
     reset()
-  }, [reset])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 現在のシャンテン数（13枚で計算）
   const currentShanten = useMemo(() => {
