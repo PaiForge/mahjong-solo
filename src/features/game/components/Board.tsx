@@ -123,6 +123,16 @@ export function Board() {
     setSelectedHaiId(undefined)
   }
 
+  // モーダルから牌を切る
+  const handleDiscardFromModal = () => {
+    if (selectedHaiId !== undefined) {
+      discard(selectedHaiId as number)
+      draw()
+      setSelectedHaiId(undefined)
+      setShowModal(false)
+    }
+  }
+
   return (
     <div className="h-screen bg-green-700 flex flex-col">
       {/* メインエリア（捨て牌表示） */}
@@ -156,6 +166,7 @@ export function Board() {
           nextShanten={nextShanten}
           ukeire={ukeire}
           onClose={handleCloseModal}
+          onDiscard={handleDiscardFromModal}
         />
       )}
     </div>
