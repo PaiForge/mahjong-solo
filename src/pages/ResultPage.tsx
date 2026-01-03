@@ -19,9 +19,6 @@ export function ResultPage() {
         <CompleteAnimation />
       </div>
 
-      {/* 和了テキスト */}
-      <div className="text-white text-2xl font-bold">和了！</div>
-
       {/* 和了時の手牌 */}
       {tehai.length > 0 && (
         <div className="flex flex-wrap justify-center gap-1">
