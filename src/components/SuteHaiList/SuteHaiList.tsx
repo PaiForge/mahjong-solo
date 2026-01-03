@@ -1,5 +1,5 @@
-import { Hai } from '@pai-forge/mahjong-react-ui'
 import type { GameHai } from '@/types'
+import { Hai } from '@pai-forge/mahjong-react-ui'
 
 type Props = {
   /** 捨て牌 */

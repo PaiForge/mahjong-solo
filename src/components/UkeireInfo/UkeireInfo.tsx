@@ -1,5 +1,5 @@
-import { Hai } from '@pai-forge/mahjong-react-ui'
 import type { HaiKindId } from '@pai-forge/riichi-mahjong'
+import { Hai } from '@pai-forge/mahjong-react-ui'
 
 type Props = {
   /** 現在のシャンテン数 */

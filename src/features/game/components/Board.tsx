@@ -98,13 +98,18 @@ export function Board() {
 
   return (
     <div className="h-screen bg-green-700 flex flex-col">
+      {/* デバッグ情報 */}
+      <div className="absolute top-2 left-2 text-white text-sm bg-black/50 p-2 rounded z-50">
+        手牌: {tehai.length}枚 / シャンテン: {currentShanten}
+      </div>
+
       {/* メインエリア（捨て牌表示） */}
       <div className="main-area flex-1 overflow-auto">
         <SuteHaiList sutehai={sutehai} />
       </div>
 
-      {/* 手牌エリア（画面下部に固定） */}
-      <div className="tehai-area fixed bottom-0 left-0 right-0 flex justify-center items-center bg-green-800/50">
+      {/* 手牌エリア（画面下部に固定、モーダルより前面に表示） */}
+      <div className="tehai-area fixed bottom-0 left-0 right-0 flex justify-center items-center bg-green-800/50 z-[60]">
         <Tehai
           tehai={tehai}
           selectedHaiId={selectedHaiId}
