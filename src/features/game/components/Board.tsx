@@ -48,6 +48,7 @@ export function Board() {
   const [selectedHaiId, setSelectedHaiId] = useState<HaiId | undefined>(undefined)
   const [showModal, setShowModal] = useState(false)
   const [showBestMove, setShowBestMove] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
   const haiSize = useHaiSize()
 
   // ゲーム初期化（マウント時のみ）
@@ -207,6 +208,12 @@ export function Board() {
             >
               ↩ 戻す
             </div>
+            <div
+              className="text-xs px-2 py-1 rounded cursor-pointer select-none bg-orange-600/80 text-white/80"
+              onClick={() => setShowResetConfirm(true)}
+            >
+              ↻ リセット
+            </div>
           </div>
           <span className="text-white/80 text-xs">
             {currentShanten === 0 ? 'テンパイ' : `${currentShanten}シャンテン`}
@@ -233,6 +240,43 @@ export function Board() {
           onClose={handleCloseModal}
           onDiscard={handleDiscardFromModal}
         />
+      )}
+
+      {/* リセット確認モーダル */}
+      {showResetConfirm && (
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+          onClick={() => setShowResetConfirm(false)}
+        >
+          <div
+            className="bg-green-900/95 text-white p-4 rounded-lg max-w-xs border border-green-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 text-center">
+              配牌からやり直しますか？
+            </div>
+            <div className="flex gap-2">
+              <button
+                className="flex-1 py-2 bg-green-700 hover:bg-green-600 text-white rounded transition-colors"
+                onClick={() => setShowResetConfirm(false)}
+              >
+                キャンセル
+              </button>
+              <button
+                className="flex-1 py-2 bg-red-600 hover:bg-red-500 text-white rounded transition-colors"
+                onClick={() => {
+                  reset()
+                  setShowResetConfirm(false)
+                  setSelectedHaiId(undefined)
+                  setShowModal(false)
+                  setShowBestMove(false)
+                }}
+              >
+                リセット
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
