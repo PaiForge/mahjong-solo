@@ -42,7 +42,7 @@ function useHaiSize(): HaiSize {
  */
 export function Board() {
   const navigate = useNavigate()
-  const { tehai, sutehai, reset, discard, draw } = useGameStore()
+  const { tehai, sutehai, reset, discardAndDraw, undo, canUndo } = useGameStore()
   const [selectedHaiId, setSelectedHaiId] = useState<HaiId | undefined>(undefined)
   const [showModal, setShowModal] = useState(false)
   const [showBestMove, setShowBestMove] = useState(false)
@@ -141,8 +141,7 @@ export function Board() {
   const handleHaiClick = (haiId: HaiId) => {
     if (selectedHaiId === haiId) {
       // 同じ牌を再度クリック → 切る
-      discard(haiId as number)
-      draw()
+      discardAndDraw(haiId as number)
       setSelectedHaiId(undefined)
       setShowModal(false)
     } else {
@@ -161,8 +160,7 @@ export function Board() {
   // モーダルから牌を切る
   const handleDiscardFromModal = () => {
     if (selectedHaiId !== undefined) {
-      discard(selectedHaiId as number)
-      draw()
+      discardAndDraw(selectedHaiId as number)
       setSelectedHaiId(undefined)
       setShowModal(false)
     }
@@ -177,17 +175,29 @@ export function Board() {
 
       {/* 手牌エリア（画面下部） */}
       <div className="tehai-area shrink-0 z-[60]">
-        {/* シャンテン数・ヒント表示 */}
+        {/* シャンテン数・ヒント・元に戻す */}
         <div className="flex justify-between items-center px-2 py-1">
-          <div
-            className={`text-xs px-2 py-1 rounded cursor-pointer select-none ${
-              showBestMove
-                ? 'bg-yellow-400 text-yellow-900'
-                : 'bg-green-600/80 text-white/80'
-            }`}
-            onClick={() => setShowBestMove((prev) => !prev)}
-          >
-            ★ ヒント
+          <div className="flex gap-2">
+            <div
+              className={`text-xs px-2 py-1 rounded cursor-pointer select-none ${
+                showBestMove
+                  ? 'bg-yellow-400 text-yellow-900'
+                  : 'bg-green-600/80 text-white/80'
+              }`}
+              onClick={() => setShowBestMove((prev) => !prev)}
+            >
+              ★ ヒント
+            </div>
+            <div
+              className={`text-xs px-2 py-1 rounded select-none ${
+                canUndo
+                  ? 'bg-green-600/80 text-white/80 cursor-pointer'
+                  : 'bg-green-800/50 text-white/30 cursor-not-allowed'
+              }`}
+              onClick={canUndo ? undo : undefined}
+            >
+              ↩ 戻す
+            </div>
           </div>
           <span className="text-white/80 text-xs">
             {currentShanten === 0 ? 'テンパイ' : `${currentShanten}シャンテン`}

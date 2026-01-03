@@ -2,25 +2,31 @@ import { create } from 'zustand'
 import type { GameHai } from '@/types'
 import { createAllHai, sortTehai } from '../utils/hai'
 
-type GameStore = {
-  /** 手牌（13枚 + ツモ牌1枚 = 14枚） */
+type GameState = {
   tehai: GameHai[]
-  /** 牌山（残りの牌） */
   yama: GameHai[]
-  /** 捨て牌 */
   sutehai: GameHai[]
-  /** ゲームを初期化する */
-  reset: () => void
-  /** 牌を切る */
-  discard: (haiId: number) => void
-  /** 牌山から1枚ツモる */
-  draw: () => void
 }
 
-export const useGameStore = create<GameStore>((set) => ({
+type GameStore = GameState & {
+  /** 履歴（元に戻す用） */
+  history: GameState[]
+  /** 元に戻せるかどうか */
+  canUndo: boolean
+  /** ゲームを初期化する */
+  reset: () => void
+  /** 牌を切ってツモる（1アクションとして履歴に保存） */
+  discardAndDraw: (haiId: number) => void
+  /** 元に戻す */
+  undo: () => void
+}
+
+export const useGameStore = create<GameStore>((set, get) => ({
   tehai: [],
   yama: [],
   sutehai: [],
+  history: [],
+  canUndo: false,
 
   reset: () => {
     const allHai = createAllHai()
@@ -33,33 +39,53 @@ export const useGameStore = create<GameStore>((set) => ({
       tehai: [...initialTehai, tsumoHai],
       yama: allHai.slice(14),
       sutehai: [],
+      history: [],
+      canUndo: false,
     })
   },
 
-  discard: (haiId: number) => {
-    set((state) => {
-      const discardedHai = state.tehai.find((hai) => hai.haiId === haiId)
-      if (!discardedHai) return state
+  discardAndDraw: (haiId: number) => {
+    const state = get()
+    const discardedHai = state.tehai.find((hai) => hai.haiId === haiId)
+    if (!discardedHai || state.yama.length === 0) return
 
-      return {
-        tehai: state.tehai.filter((hai) => hai.haiId !== haiId),
-        sutehai: [...state.sutehai, discardedHai],
-      }
+    // 現在の状態を履歴に保存
+    const currentState: GameState = {
+      tehai: state.tehai,
+      yama: state.yama,
+      sutehai: state.sutehai,
+    }
+
+    // 牌を切る
+    const tehaiAfterDiscard = state.tehai.filter((hai) => hai.haiId !== haiId)
+    const newSutehai = [...state.sutehai, discardedHai]
+
+    // ツモる
+    const [tsumoHai, ...restYama] = state.yama
+    const sortedTehai = sortTehai(tehaiAfterDiscard)
+
+    set({
+      tehai: [...sortedTehai, tsumoHai],
+      yama: restYama,
+      sutehai: newSutehai,
+      history: [...state.history, currentState],
+      canUndo: true,
     })
   },
 
-  draw: () => {
-    set((state) => {
-      if (state.yama.length === 0) return state
+  undo: () => {
+    const state = get()
+    if (state.history.length === 0) return
 
-      const [tsumoHai, ...restYama] = state.yama
-      // 手牌をソートしてからツモ牌を末尾に追加
-      const sortedTehai = sortTehai(state.tehai)
+    const previousState = state.history[state.history.length - 1]
+    const newHistory = state.history.slice(0, -1)
 
-      return {
-        tehai: [...sortedTehai, tsumoHai],
-        yama: restYama,
-      }
+    set({
+      tehai: previousState.tehai,
+      yama: previousState.yama,
+      sutehai: previousState.sutehai,
+      history: newHistory,
+      canUndo: newHistory.length > 0,
     })
   },
 }))
