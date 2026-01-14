@@ -5,6 +5,7 @@ import type { HaiId, HaiKindId } from '@pai-forge/riichi-mahjong'
 import type { HaiSize } from '@pai-forge/mahjong-react-ui'
 import { Tehai, SuteHaiList, UkeireInfo } from '@/components'
 import { useGameStore } from '../stores/useGameStore'
+import { calculateBestMoves } from '../utils/hintLogic'
 
 /**
  * 画面サイズに応じた牌のサイズを取得するフック
@@ -89,35 +90,10 @@ export function Board() {
     return { nextShanten, ukeire }
   }, [tehai, selectedHaiId, currentShanten])
 
-  // ベストムーブを計算（シャンテン数が最小で、受け入れ枚数が最大の打牌、同率は全てハイライト）
+  // ベストムーブを計算（新ロジック：残り枚数とメンツ完成を考慮）
   const bestMoveHaiIds = useMemo(() => {
-    if (tehai.length < 14) return []
-
-    // 各牌のシャンテン数と受け入れ枚数を計算
-    const evaluations = tehai.map((hai) => {
-      const tehaiAfterDiscard = tehai.filter((h) => h.haiId !== hai.haiId)
-      const shanten = calculateShanten({
-        closed: tehaiAfterDiscard.map((h) => h.kindId),
-        exposed: [],
-      })
-      const ukeireList = getUkeire({
-        closed: tehaiAfterDiscard.map((h) => h.kindId),
-        exposed: [],
-      })
-      return { haiId: hai.haiId, shanten, ukeireCount: ukeireList.length }
-    })
-
-    // 最小シャンテン数を取得
-    const minShanten = Math.min(...evaluations.map((e) => e.shanten))
-    // 最小シャンテン数の牌の中で最大受け入れ枚数を取得
-    const maxUkeireCount = Math.max(
-      ...evaluations.filter((e) => e.shanten === minShanten).map((e) => e.ukeireCount)
-    )
-    // 同率一位の牌を全て返す
-    return evaluations
-      .filter((e) => e.shanten === minShanten && e.ukeireCount === maxUkeireCount)
-      .map((e) => e.haiId)
-  }, [tehai])
+    return calculateBestMoves(tehai, sutehai)
+  }, [tehai, sutehai])
 
   // テンパイで有効牌をツモったら和了
   useEffect(() => {
@@ -185,21 +161,19 @@ export function Board() {
         <div className="flex justify-between items-center px-2 py-1">
           <div className="flex gap-2">
             <div
-              className={`text-xs px-2 py-1 rounded cursor-pointer select-none ${
-                showBestMove
-                  ? 'bg-yellow-400 text-yellow-900'
-                  : 'bg-green-600/80 text-white/80'
-              }`}
+              className={`text-xs px-2 py-1 rounded cursor-pointer select-none ${showBestMove
+                ? 'bg-yellow-400 text-yellow-900'
+                : 'bg-green-600/80 text-white/80'
+                }`}
               onClick={() => setShowBestMove((prev) => !prev)}
             >
               ★ ヒント
             </div>
             <div
-              className={`text-xs px-2 py-1 rounded select-none ${
-                canUndo
-                  ? 'bg-green-600/80 text-white/80 cursor-pointer'
-                  : 'bg-green-800/50 text-white/30 cursor-not-allowed'
-              }`}
+              className={`text-xs px-2 py-1 rounded select-none ${canUndo
+                ? 'bg-green-600/80 text-white/80 cursor-pointer'
+                : 'bg-green-800/50 text-white/30 cursor-not-allowed'
+                }`}
               onClick={canUndo ? () => {
                 undo()
                 setSelectedHaiId(undefined)
